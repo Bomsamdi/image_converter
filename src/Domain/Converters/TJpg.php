@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Domain\Converters;
-trait TJpg {
-    function createJpg($path){
+
+trait TJpg
+{
+    public static function createJpg($path)
+    {
         return imagecreatefromjpeg($path);
     }
 }
-?>

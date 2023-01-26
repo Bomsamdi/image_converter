@@ -1,5 +1,9 @@
+AuthType Basic
+AuthName "Wymagane logowanie"
+AuthUserFile ../.htpasswd
+Require valid-user
 Options All -Indexes
-
+AddHandler application/x-httpd-php81 php
 <Files .htaccess>
 order allow,deny
 deny from all

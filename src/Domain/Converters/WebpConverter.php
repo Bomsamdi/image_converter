@@ -1,25 +1,57 @@
 <?php
+
+namespace App\Domain\Converters;
+
 use App\Domain\Converters\IConverter;
 use Psr\Http\Message\ResponseInterface as Response;
-class WebpConverter implements IConverter {
-    use App\Domain\Converters\TPng;
-    use App\Domain\Converters\TJpg;
-    use App\Domain\Converters\TImage;
 
-  static function fromPng($path, $file) : string {
-    $response = [];
-    return json_encode($response);
-  }
+class WebpConverter extends Converter implements IConverter
+{
+    use TPng;
+    use TJpg;
+    use TImage;
 
-  static function fromJpg($path, $file) : string {
-    $response = [];
-    return json_encode($response);
-  }
+    public static array $supportedFormats = ['png', 'jpg', 'jpeg'];
 
-  static function badResponse(Response $response) : Response {
-    $resp = [ 'error' => 'bad format' ];
-    $response->getBody()->write(json_encode($resp));
-    return $response;
-  }
+    public static function checkFileFormat($format): bool
+    {
+        if (!in_array($format, WebpConverter::$supportedFormats)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static function convertImage($img, $path): bool
+    {
+        return imagewebp($img, $path);
+    }
+
+    public static function successResponse(Response $response, $base64): Response
+    {
+        $model = new ResponseModel(status: 200, base64: $base64);
+        $response->getBody()->write($model->jsonSerialize());
+        return $response;
+    }
+
+    public static function wrongFileFormatResponse(Response $response): Response
+    {
+        $model = new ResponseModel(status: 400, error: 'Wrong file format');
+        $response->getBody()->write($model->jsonSerialize());
+        return $response;
+    }
+
+    public static function missingFileResponse(Response $response): Response
+    {
+        $model = new ResponseModel(status: 400, error:'Request without file');
+        $response->getBody()->write($model->jsonSerialize());
+        return $response;
+    }
+
+    public static function uploadingFileFailedResponse(Response $response): Response
+    {
+        $model = new ResponseModel(status: 400, error: 'File upload failed');
+        $response->getBody()->write($model->jsonSerialize());
+        return $response;
+    }
 }
-?>

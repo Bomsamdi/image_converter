@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Domain\Converters;
-trait TImage {
-    function toTrueColor($img) {
+
+trait TImage
+{
+    public static function toTrueColor($img): bool
+    {
         return imagepalettetotruecolor($img);
     }
 }
-?>
