@@ -35,8 +35,7 @@ return function (App $app) {
         return $response;
     });
 
-    $app->post('/convert-to-webp', function (Request $request, Response $response) use ($uploadFolder)
-    {
+    $app->post('/convert-to-webp', function (Request $request, Response $response) use ($uploadFolder) {
         if (isset($_FILES['file'])) {
             $uploadedFile = $_FILES['file'];
             if ($uploadedFile['error'] === 0) {
@@ -75,8 +74,7 @@ return function (App $app) {
         }
     });
 
-    $app->post('/convert-to-webp-download', function (Request $request, Response $response) use ($uploadFolder)
-    {
+    $app->post('/convert-to-webp-download', function (Request $request, Response $response) use ($uploadFolder) {
         if (isset($_FILES['file'])) {
             $uploadedFile = $_FILES['file'];
             if ($uploadedFile['error'] === 0) {
@@ -126,13 +124,14 @@ return function (App $app) {
         }
     });
 
-    $app->post('/convert-to-zip-webp-download', function (Request $request, Response $response) use ($uploadFolder)
-    {
+    $app->post('/convert-to-zip-webp-download', function (Request $request, Response $response) use ($uploadFolder) {
         $it = new RecursiveDirectoryIterator(__DIR__ . DIRECTORY_SEPARATOR . $uploadFolder, RecursiveDirectoryIterator::SKIP_DOTS);
-        $files = new RecursiveIteratorIterator($it,
-            RecursiveIteratorIterator::CHILD_FIRST);
-        foreach($files as $file) {
-            if ($file->isDir()){
+        $files = new RecursiveIteratorIterator(
+            $it,
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($files as $file) {
+            if ($file->isDir()) {
                 rmdir($file->getRealPath());
             } else {
                 unlink($file->getRealPath());
@@ -163,13 +162,13 @@ return function (App $app) {
                 $files = scandir($new_path);
 
 
-                foreach ($files as $file){
-                    if(WebpConverter::checkFileFormat(explode('.', $file)[1]) === false){
+                foreach ($files as $file) {
+                    if (WebpConverter::checkFileFormat(explode('.', $file)[1]) === false) {
                         $images[] = $file;
                     }
                 }
 
-                foreach ($images as $image){
+                foreach ($images as $image) {
                     $imageArray = explode('.', $image);
                     $new_target_path = $new_path . DIRECTORY_SEPARATOR . $image;
                     if ($imageArray[1] === 'png') {
@@ -185,23 +184,25 @@ return function (App $app) {
 
                 $za = new FlxZipArchive();
                 $res = $za->open($new_path . '.zip', ZipArchive::CREATE);
-                if($res === TRUE)
-                {
+                if ($res === true) {
                     $za->addDir($new_path, basename($new_path));
                     $za->close();
                 }
 
                 $it = new RecursiveDirectoryIterator($new_path, RecursiveDirectoryIterator::SKIP_DOTS);
-                $files = new RecursiveIteratorIterator($it,
-                    RecursiveIteratorIterator::CHILD_FIRST);
-                foreach($files as $file) {
-                    if ($file->isDir()){
+                $files = new RecursiveIteratorIterator(
+                    $it,
+                    RecursiveIteratorIterator::CHILD_FIRST
+                );
+                foreach ($files as $file) {
+                    if ($file->isDir()) {
                         rmdir($file->getRealPath());
                     } else {
                         unlink($file->getRealPath());
                     }
                 }
                 rmdir($new_path);
+                ini_set('post_max_size', '2G');
                 //unlink($target_path);
 //                $fh = fopen($new_path . '.zip', 'rb');
 //
@@ -218,7 +219,7 @@ return function (App $app) {
 //                    ->withBody($stream);
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/octet-stream');
-                header('Content-Disposition: attachment;filename="'.basename($new_path . '.zip').'"');
+                header('Content-Disposition: attachment;filename="' . basename($new_path . '.zip') . '"');
                 header('Expires: 0');
                 header('Cache-Control: must-revalidate');
                 header('Pragma: public');

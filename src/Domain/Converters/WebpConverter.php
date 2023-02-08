@@ -66,7 +66,8 @@ class WebpConverter extends Converter implements IConverter
         return $response;
     }
 
-    private static function createZip($files = array(), $dest = '', $overwrite = false) {
+    private static function createZip($files = [], $dest = '', $overwrite = false)
+    {
         if (file_exists($dest) && !$overwrite) {
             return false;
         }
@@ -85,7 +86,8 @@ class WebpConverter extends Converter implements IConverter
         }
     }
 
-    public static function addZip($source, $destination) {
+    public static function addZip($source, $destination)
+    {
         $files_to_zip = glob($source . '/*');
         self::createZip($files_to_zip, $destination);
     }
@@ -102,11 +104,12 @@ class FlxZipArchive extends ZipArchive
     {
         $name .= '/';
         $location .= '/';
-        $dir = opendir ($location);
-        while ($file = readdir($dir))
-        {
-            if ($file == '.' || $file == '..') continue;
-            $do = (filetype( $location . $file) == 'dir') ? 'addDir' : 'addFile';
+        $dir = opendir($location);
+        while ($file = readdir($dir)) {
+            if ($file == '.' || $file == '..') {
+                continue;
+            }
+            $do = (filetype($location . $file) == 'dir') ? 'addDir' : 'addFile';
             $this->$do($location . $file, $name . $file);
         }
     }
