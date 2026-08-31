@@ -6,79 +6,31 @@ use App\Application\Handlers\HttpErrorHandler;
 use App\Application\Handlers\ShutdownHandler;
 use App\Application\ResponseEmitter\ResponseEmitter;
 use App\Application\Settings\SettingsInterface;
-use DI\ContainerBuilder;
-use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
-use Slim\Views\PhpRenderer;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Instantiate PHP-DI ContainerBuilder
-$containerBuilder = new ContainerBuilder();
+$app = (require __DIR__ . '/../app/bootstrap.php')(
+    compile: filter_var($_ENV['APP_COMPILE'] ?? getenv('APP_COMPILE') ?: 'false', FILTER_VALIDATE_BOOLEAN)
+);
 
-if (false) { // Should be set to true in production
-	$containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
-}
-
-// Set up settings
-$settings = require __DIR__ . '/../app/settings.php';
-$settings($containerBuilder);
-
-// Set up dependencies
-$dependencies = require __DIR__ . '/../app/dependencies.php';
-$dependencies($containerBuilder);
-
-// Set up repositories
-$repositories = require __DIR__ . '/../app/repositories.php';
-$repositories($containerBuilder);
-
-// Build PHP-DI Container instance
-$container = $containerBuilder->build();
-$container->set(name: 'view', value: new PhpRenderer('../src/Domain/Converters/templates/'));
-
-// Instantiate the app
-AppFactory::setContainer($container);
-$app = AppFactory::create();
-$callableResolver = $app->getCallableResolver();
-
-// Register middleware
-$middleware = require __DIR__ . '/../app/middleware.php';
-$middleware($app);
-
-// Register routes
-$routes = require __DIR__ . '/../app/routes.php';
-$routes($app);
-
-/** @var SettingsInterface $settings */
+$container = $app->getContainer();
 $settings = $container->get(SettingsInterface::class);
+$displayErrorDetails = (bool) $settings->get('displayErrorDetails');
 
-$displayErrorDetails = $settings->get('displayErrorDetails');
-$logError = $settings->get('logError');
-$logErrorDetails = $settings->get('logErrorDetails');
+$request = ServerRequestCreatorFactory::create()->createServerRequestFromGlobals();
 
-// Create Request object from globals
-$serverRequestCreator = ServerRequestCreatorFactory::create();
-$request = $serverRequestCreator->createServerRequestFromGlobals();
+$errorHandler = new HttpErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
+register_shutdown_function(new ShutdownHandler($request, $errorHandler, $displayErrorDetails));
 
-// Create Error Handler
-$responseFactory = $app->getResponseFactory();
-$errorHandler = new HttpErrorHandler($callableResolver, $responseFactory);
-
-// Create Shutdown Handler
-$shutdownHandler = new ShutdownHandler($request, $errorHandler, $displayErrorDetails);
-register_shutdown_function($shutdownHandler);
-
-// Add Routing Middleware
 $app->addRoutingMiddleware();
-
-// Add Body Parsing Middleware
 $app->addBodyParsingMiddleware();
-
-// Add Error Middleware
-$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logError, $logErrorDetails);
+$errorMiddleware = $app->addErrorMiddleware(
+    $displayErrorDetails,
+    (bool) $settings->get('logError'),
+    (bool) $settings->get('logErrorDetails'),
+    $container->get(Psr\Log\LoggerInterface::class)
+);
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
-// Run App & Emit Response
-$response = $app->handle($request);
-$responseEmitter = new ResponseEmitter();
-$responseEmitter->emit($response);
+(new ResponseEmitter())->emit($app->handle($request));

@@ -1,7 +1,9 @@
-.idea/
-.vscode/
-/coverage/
 /vendor/
-/logs/*
-!/logs/README.md
+/logs/*.log
+/var/cache/
+/var/phpunit/
+/app/upload/
 .phpunit.result.cache
+.phpunit.cache/
+.DS_Store
+.idea/

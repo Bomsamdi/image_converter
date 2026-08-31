@@ -1,0 +1,22 @@
+<?= $this->fetch('partials/head.phtml') ?>
+<div class="back">
+    <div class="div-center">
+        <div class="content container py-5" style="max-width: 560px">
+            <h1 class="text-center mb-4">Convert an archive</h1>
+
+            <form action="/api/convert-archive" method="post" enctype="multipart/form-data">
+                <label for="file" class="form-label">A ZIP holding PNG or JPEG images</label>
+                <input class="form-control form-control-lg" type="file" id="file" name="file"
+                       accept=".zip,application/zip" required>
+
+                <?= $this->fetch('partials/formats.phtml') ?>
+
+                <button class="btn btn-success btn-lg w-100" type="submit">Convert and download</button>
+            </form>
+
+            <p class="text-center mt-4 mb-0">
+                <a href="/" class="link-secondary small">Back</a>
+            </p>
+        </div>
+    </div>
+</div>

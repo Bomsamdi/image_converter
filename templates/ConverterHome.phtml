@@ -1,0 +1,42 @@
+<?= $this->fetch('partials/head.phtml') ?>
+<div class="back">
+    <div class="div-center">
+        <div class="content container py-5" style="max-width: 720px">
+            <h1 class="text-center mb-2">Image converter</h1>
+            <p class="text-center text-secondary mb-5">
+                PNG and JPEG in, WebP or AVIF out. One file, or a whole ZIP.
+            </p>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="p-4 border rounded h-100">
+                        <h2 class="fs-4">One image</h2>
+                        <p class="text-secondary small">
+                            Pick a PNG or JPEG and get the converted file back.
+                        </p>
+                        <a href="/single-file-converter" class="btn btn-success w-100" role="button">
+                            Convert a file
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 border rounded h-100">
+                        <h2 class="fs-4">A ZIP of images</h2>
+                        <p class="text-secondary small">
+                            Every image inside is converted; folders are kept and
+                            anything that is not an image is left out.
+                        </p>
+                        <a href="/zip-file-converter" class="btn btn-success w-100" role="button">
+                            Convert an archive
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-secondary small mt-5 mb-0">
+                There is an HTTP API too: <code>POST /api/convert/webp</code>.
+                See the README.
+            </p>
+        </div>
+    </div>
+</div>

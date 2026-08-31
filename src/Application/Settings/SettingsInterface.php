@@ -6,9 +6,6 @@ namespace App\Application\Settings;
 
 interface SettingsInterface
 {
-    /**
-     * @param string $key
-     * @return mixed
-     */
-    public function get(string $key = '');
+    /** Everything when [$key] is empty, one entry otherwise, null if absent. */
+    public function get(string $key = ''): mixed;
 }

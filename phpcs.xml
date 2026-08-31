@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Slim coding standard">
-    <description>Slim coding standard</description>
+<ruleset name="image_converter">
+    <description>PSR-12, with short array syntax required.</description>
 
     <!-- display progress -->
     <arg value="p"/>
@@ -14,4 +14,6 @@
     <!-- Paths to check -->
     <file>src</file>
     <file>tests</file>
+    <file>app</file>
+    <file>public</file>
 </ruleset>

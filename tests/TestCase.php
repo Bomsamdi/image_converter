@@ -4,80 +4,42 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use DI\ContainerBuilder;
-use Exception;
-use PHPUnit\Framework\TestCase as PHPUnit_TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
-use Slim\Factory\AppFactory;
 use Slim\Psr7\Factory\StreamFactory;
 use Slim\Psr7\Headers;
 use Slim\Psr7\Request as SlimRequest;
+use Slim\Psr7\UploadedFile;
 use Slim\Psr7\Uri;
 
-class TestCase extends PHPUnit_TestCase
+abstract class TestCase extends PHPUnitTestCase
 {
-    use ProphecyTrait;
-
     /**
-     * @return App
-     * @throws Exception
+     * The same application the front controller builds.
+     *
+     * @return App<ContainerInterface|null>
      */
     protected function getAppInstance(): App
     {
-        // Instantiate PHP-DI ContainerBuilder
-        $containerBuilder = new ContainerBuilder();
-
-        // Container intentionally not compiled for tests.
-
-        // Set up settings
-        $settings = require __DIR__ . '/../app/settings.php';
-        $settings($containerBuilder);
-
-        // Set up dependencies
-        $dependencies = require __DIR__ . '/../app/dependencies.php';
-        $dependencies($containerBuilder);
-
-        // Set up repositories
-        $repositories = require __DIR__ . '/../app/repositories.php';
-        $repositories($containerBuilder);
-
-        // Build PHP-DI Container instance
-        $container = $containerBuilder->build();
-
-        // Instantiate the app
-        AppFactory::setContainer($container);
-        $app = AppFactory::create();
-
-        // Register middleware
-        $middleware = require __DIR__ . '/../app/middleware.php';
-        $middleware($app);
-
-        // Register routes
-        $routes = require __DIR__ . '/../app/routes.php';
-        $routes($app);
+        $app = (require __DIR__ . '/../app/bootstrap.php')(compile: false);
+        $app->addRoutingMiddleware();
+        $app->addBodyParsingMiddleware();
+        $app->addErrorMiddleware(false, false, false);
 
         return $app;
     }
 
-    /**
-     * @param string $method
-     * @param string $path
-     * @param array  $headers
-     * @param array  $cookies
-     * @param array  $serverParams
-     * @return Request
-     */
+    /** @param array<string, string> $headers */
     protected function createRequest(
         string $method,
         string $path,
         array $headers = ['HTTP_ACCEPT' => 'application/json'],
-        array $cookies = [],
-        array $serverParams = []
     ): Request {
         $uri = new Uri('', '', 80, $path);
         $handle = fopen('php://temp', 'w+');
+        self::assertNotFalse($handle);
         $stream = (new StreamFactory())->createStreamFromResource($handle);
 
         $h = new Headers();
@@ -85,6 +47,31 @@ class TestCase extends PHPUnit_TestCase
             $h->addHeader($name, $value);
         }
 
-        return new SlimRequest($method, $uri, $h, $cookies, $serverParams, $stream);
+        return new SlimRequest($method, $uri, $h, [], [], $stream);
+    }
+
+    /**
+     * A request carrying one uploaded file, the way a browser would send it.
+     */
+    protected function createUploadRequest(
+        string $path,
+        string $bytes,
+        string $clientName = 'image.png',
+        string $field = 'file',
+        int $error = UPLOAD_ERR_OK,
+    ): Request {
+        $temp = (string) tempnam(sys_get_temp_dir(), 'upload');
+        file_put_contents($temp, $bytes);
+
+        $upload = new UploadedFile(
+            $temp,
+            $clientName,
+            'application/octet-stream',
+            strlen($bytes),
+            $error,
+        );
+
+        return $this->createRequest('POST', $path)
+            ->withUploadedFiles([$field => $upload]);
     }
 }

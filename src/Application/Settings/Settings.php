@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Settings;
 
-class Settings implements SettingsInterface
+final class Settings implements SettingsInterface
 {
-    private array $settings;
-
-    public function __construct(array $settings)
+    /** @param array<string, mixed> $settings */
+    public function __construct(private readonly array $settings)
     {
-        $this->settings = $settings;
     }
 
-    /**
-     * @return mixed
-     */
-    public function get(string $key = '')
+    public function get(string $key = ''): mixed
     {
-        return (empty($key)) ? $this->settings : $this->settings[$key];
+        return $key === '' ? $this->settings : ($this->settings[$key] ?? null);
     }
 }
