@@ -16,7 +16,7 @@
         "ext-gd": "*",
         "ext-json": "*",
         "ext-zip": "*",
-        "monolog/monolog": "^3.7",
+        "monolog/monolog": "^3.12",
         "php-di/php-di": "^7.0",
         "slim/php-view": "^3.4",
         "slim/psr7": "^1.7",
